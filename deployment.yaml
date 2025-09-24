@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cloud-pipeline
+  labels:
+    app: cloud-pipeline
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: cloud-pipeline
+  template:
+    metadata:
+      labels:
+        app: cloud-pipeline
+    spec:
+      containers:
+      - name: cloud-pipeline
+        image: sivaram9087/cloud-pipeline:latest
+        ports:
+        - containerPort: 80
