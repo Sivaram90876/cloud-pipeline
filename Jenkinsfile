@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        REGISTRY = "your-dockerhub-username"
+        REGISTRY = "sivaram9087"
         IMAGE = "cloud-pipeline"
         KUBE_NAMESPACE = "default"
     }
