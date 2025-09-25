@@ -16,6 +16,8 @@ spec:
     spec:
       containers:
       - name: cloud-pipeline
-        image: docker.io/sivaram9087/cloud-pipeline:latest
+        image: docker.io/sivaram9087/cloud-pipeline:latest  # Overridden in Jenkins
         ports:
         - containerPort: 80
+      imagePullSecrets:
+      - name: regcred
