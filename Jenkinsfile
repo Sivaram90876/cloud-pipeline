@@ -9,7 +9,10 @@ spec:
   - name: kaniko
     image: gcr.io/kaniko-project/executor:latest
     command:
-    - cat
+    - /busybox/sh
+    args:
+    - -c
+    - sleep 999999
     tty: true
     volumeMounts:
     - name: docker-config
@@ -24,7 +27,6 @@ spec:
 
     environment {
         IMAGE_NAME = "sivaram9087/cloud-pipeline"
-        NAMESPACE = "default"
     }
 
     stages {
@@ -44,6 +46,7 @@ spec:
                       --dockerfile ${WORKSPACE}/dockerfile \
                       --destination=$IMAGE_NAME:${BUILD_NUMBER} \
                       --destination=$IMAGE_NAME:latest \
+                      --oci-layout-path=/kaniko/oci \
                       --verbosity=info
                     """
                 }
@@ -53,9 +56,11 @@ spec:
         stage('Deploy to EKS') {
             steps {
                 sh """
-                kubectl apply -f k8s/deployment.yaml -n $NAMESPACE
-                kubectl apply -f k8s/service.yaml -n $NAMESPACE
-                kubectl set image deployment/cloud-pipeline cloud-pipeline=docker.io/$IMAGE_NAME:${BUILD_NUMBER} -n $NAMESPACE || true
+                kubectl set image deployment/cloud-pipeline \
+                  cloud-pipeline=docker.io/$IMAGE_NAME:${BUILD_NUMBER} \
+                  -n default || true
+
+                kubectl apply -f k8s/service.yaml
                 """
             }
         }
