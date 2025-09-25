@@ -1,28 +1,6 @@
 pipeline {
     agent {
-        kubernetes {
-            yaml """
-apiVersion: v1
-kind: Pod
-spec:
-  containers:
-  - name: kaniko
-    image: gcr.io/kaniko-project/executor:latest
-    command:
-    - /busybox/sh
-    args:
-    - -c
-    - sleep 999999
-    tty: true
-    volumeMounts:
-    - name: docker-config
-      mountPath: /kaniko/.docker
-  volumes:
-  - name: docker-config
-    secret:
-      secretName: regcred
-"""
-        }
+        label 'kaniko'   // Use the pod template you created in Jenkins UI
     }
 
     environment {
@@ -39,17 +17,14 @@ spec:
 
         stage('Build & Push with Kaniko') {
             steps {
-                container('kaniko') {
-                    sh """
-                    /kaniko/executor \
-                      --context ${WORKSPACE} \
-                      --dockerfile ${WORKSPACE}/dockerfile \
-                      --destination=$IMAGE_NAME:${BUILD_NUMBER} \
-                      --destination=$IMAGE_NAME:latest \
-                      --oci-layout-path=/kaniko/oci \
-                      --verbosity=info
-                    """
-                }
+                sh """
+                /kaniko/executor \
+                  --context ${WORKSPACE} \
+                  --dockerfile ${WORKSPACE}/dockerfile \
+                  --destination=$IMAGE_NAME:${BUILD_NUMBER} \
+                  --destination=$IMAGE_NAME:latest \
+                  --verbosity=info
+                """
             }
         }
 
