@@ -1,9 +1,30 @@
 pipeline {
-    agent any
+    agent {
+        kubernetes {
+            yaml """
+apiVersion: v1
+kind: Pod
+spec:
+  containers:
+  - name: kaniko
+    image: gcr.io/kaniko-project/executor:latest
+    command:
+    - cat
+    tty: true
+    volumeMounts:
+    - name: docker-config
+      mountPath: /kaniko/.docker
+  volumes:
+  - name: docker-config
+    secret:
+      secretName: regcred
+"""
+        }
+    }
 
     environment {
         IMAGE_NAME = "sivaram9087/cloud-pipeline"
-        NAMESPACE = "default"   // change to jenkins if that's where you deploy
+        NAMESPACE = "default"
     }
 
     stages {
@@ -23,7 +44,6 @@ pipeline {
                       --dockerfile ${WORKSPACE}/dockerfile \
                       --destination=$IMAGE_NAME:${BUILD_NUMBER} \
                       --destination=$IMAGE_NAME:latest \
-                      --oci-layout-path=/kaniko/oci \
                       --verbosity=info
                     """
                 }
@@ -33,14 +53,9 @@ pipeline {
         stage('Deploy to EKS') {
             steps {
                 sh """
-                echo '📦 Applying Deployment & Service...'
                 kubectl apply -f k8s/deployment.yaml -n $NAMESPACE
                 kubectl apply -f k8s/service.yaml -n $NAMESPACE
-
-                echo '🔄 Updating Deployment image...'
-                kubectl set image deployment/cloud-pipeline \
-                  cloud-pipeline=docker.io/$IMAGE_NAME:${BUILD_NUMBER} \
-                  -n $NAMESPACE || true
+                kubectl set image deployment/cloud-pipeline cloud-pipeline=docker.io/$IMAGE_NAME:${BUILD_NUMBER} -n $NAMESPACE || true
                 """
             }
         }
