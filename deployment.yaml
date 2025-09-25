@@ -1,21 +1,24 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: cloud-pipeline
+  name: nature-deployment
   labels:
-    app: cloud-pipeline
+    app: nature
 spec:
   replicas: 2
   selector:
     matchLabels:
-      app: cloud-pipeline
+      app: nature
   template:
     metadata:
       labels:
-        app: cloud-pipeline
+        app: nature
     spec:
       containers:
-      - name: cloud-pipeline
-        image: sivaram9087/cloud-pipeline:latest
+      - name: nature-container
+        image: sivaram9087/cloud-pipeline:latest   # Jenkins pushes here
+        imagePullPolicy: Always
         ports:
         - containerPort: 80
+      imagePullSecrets:
+      - name: regcred    # DockerHub credentials secret
