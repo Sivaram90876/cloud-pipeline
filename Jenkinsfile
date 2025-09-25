@@ -3,6 +3,7 @@ pipeline {
 
     environment {
         IMAGE_NAME = "sivaram9087/cloud-pipeline"
+        NAMESPACE = "default"   // change to jenkins if that's where you deploy
     }
 
     stages {
@@ -32,9 +33,14 @@ pipeline {
         stage('Deploy to EKS') {
             steps {
                 sh """
-                kubectl apply -f k8s/deployment.yaml
-                kubectl apply -f k8s/service.yaml
-                kubectl apply -f k8s/ingress.yaml
+                echo '📦 Applying Deployment & Service...'
+                kubectl apply -f k8s/deployment.yaml -n $NAMESPACE
+                kubectl apply -f k8s/service.yaml -n $NAMESPACE
+
+                echo '🔄 Updating Deployment image...'
+                kubectl set image deployment/cloud-pipeline \
+                  cloud-pipeline=docker.io/$IMAGE_NAME:${BUILD_NUMBER} \
+                  -n $NAMESPACE || true
                 """
             }
         }
