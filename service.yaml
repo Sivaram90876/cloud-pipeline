@@ -3,7 +3,7 @@ kind: Service
 metadata:
   name: cloud-pipeline-service
 spec:
-  type: LoadBalancer
+  type: LoadBalancer   # Creates AWS ELB
   selector:
     app: cloud-pipeline
   ports:
