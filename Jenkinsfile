@@ -1,7 +1,5 @@
 pipeline {
-    agent {
-        label 'kaniko'   // Use the pod template you created in Jenkins UI
-    }
+    agent any
 
     environment {
         IMAGE_NAME = "sivaram9087/cloud-pipeline"
@@ -11,20 +9,22 @@ pipeline {
         stage('Checkout') {
             steps {
                 git branch: 'main',
-                    url: 'https://github.com/Sivaram90876/Pipeline-test.git'
+                    url: 'https://github.com/Sivaram90876/cloud-pipeline.git'
             }
         }
 
         stage('Build & Push with Kaniko') {
             steps {
-                sh """
-                /kaniko/executor \
-                  --context ${WORKSPACE} \
-                  --dockerfile ${WORKSPACE}/dockerfile \
-                  --destination=$IMAGE_NAME:${BUILD_NUMBER} \
-                  --destination=$IMAGE_NAME:latest \
-                  --verbosity=info
-                """
+                container('kaniko') {
+                    sh """
+                    executor \
+                      --context ${WORKSPACE} \
+                      --dockerfile ${WORKSPACE}/dockerfile \
+                      --destination=$IMAGE_NAME:${BUILD_NUMBER} \
+                      --destination=$IMAGE_NAME:latest \
+                      --verbosity=info
+                    """
+                }
             }
         }
 
