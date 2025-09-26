@@ -1,5 +1,9 @@
 pipeline {
-    agent any
+    agent {
+        kubernetes {
+            label 'kaniko'   // This matches your Pod Template label
+        }
+    }
 
     environment {
         IMAGE_NAME = "sivaram9087/cloud-pipeline"
@@ -17,7 +21,7 @@ pipeline {
             steps {
                 container('kaniko') {
                     sh """
-                    executor \
+                    /kaniko/executor \
                       --context ${WORKSPACE} \
                       --dockerfile ${WORKSPACE}/dockerfile \
                       --destination=$IMAGE_NAME:${BUILD_NUMBER} \
